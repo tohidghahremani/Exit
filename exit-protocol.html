@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EXIT PROTOCOL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0A0A0A;
+  --white: #F5F5F3;
+  --gray: #888;
+  --gray-light: #D8D8D6;
+  --gray-dim: #2A2A2A;
+  --red: #E03030;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+html, body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.hdr {
+  padding: 20px 16px 0;
+  border-bottom: 1px solid var(--gray-dim);
+  position: sticky;
+  top: 0;
+  background: var(--black);
+  z-index: 50;
+}
+
+.hdr-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.hdr-wordmark {
+  font-family: var(--font-display);
+  font-size: 48px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--white);
+}
+
+.hdr-wordmark em {
+  color: var(--red);
+  font-style: normal;
+}
+
+.hdr-meta {
+  text-align: right;
+}
+
+.hdr-counter {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.hdr-counter-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--gray);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* progress strip */
+.progress-strip {
+  height: 2px;
+  background: var(--gray-dim);
+  margin: 0 -16px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--white);
+  transition: width 0.3s ease;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: var(--black);
+  border-bottom: 1px solid var(--gray-dim);
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.tab.active {
+  color: var(--white);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--white);
+}
+
+/* ── VIEWS ── */
+.view { display: none; padding-bottom: 100px; }
+.view.active { display: block; }
+
+/* ── CATEGORY CARD ── */
+.cat-card {
+  border-bottom: 1px solid var(--gray-dim);
+}
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  padding: 18px 16px;
+  cursor: pointer;
+  gap: 14px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.cat-seq {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray);
+  letter-spacing: 0.1em;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.cat-title-wrap { flex: 1; min-width: 0; }
+
+.cat-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--white);
+}
+
+.cat-title.is-editing {
+  display: none;
+}
+
+.cat-title-input {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--white);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--gray);
+  outline: none;
+  width: 100%;
+  display: none;
+}
+
+.cat-title-input.is-editing { display: block; }
+
+.cat-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cat-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray);
+}
+
+.cat-arrow {
+  font-size: 12px;
+  color: var(--gray);
+  transition: transform 0.2s ease;
+}
+
+.cat-card.open .cat-arrow { transform: rotate(90deg); }
+
+.cat-edit-btn {
+  font-size: 14px;
+  color: var(--gray);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1;
+}
+
+/* ── TASK LIST ── */
+.cat-body {
+  display: none;
+  padding: 0 16px 12px;
+}
+
+.cat-card.open .cat-body { display: block; }
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--gray-dim);
+}
+
+.task-item:last-of-type { border-bottom: none; }
+
+.task-check {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--gray);
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.task-item.done .task-check {
+  background: var(--white);
+  border-color: var(--white);
+}
+
+.task-check-mark {
+  display: none;
+  font-size: 10px;
+  color: var(--black);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.task-item.done .task-check-mark { display: block; }
+
+.task-content { flex: 1; min-width: 0; }
+
+.task-text {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--white);
+  cursor: pointer;
+}
+
+.task-text-input {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--white);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--gray);
+  outline: none;
+  width: 100%;
+  font-family: var(--font-body);
+  display: none;
+}
+
+.task-note {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--gray);
+  margin-top: 3px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.task-note-input {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--gray);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed #444;
+  outline: none;
+  width: 100%;
+  display: none;
+  margin-top: 3px;
+}
+
+.task-item.done .task-text { opacity: 0.35; text-decoration: line-through; }
+.task-item.done .task-note { opacity: 0.25; }
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-act-btn {
+  font-size: 13px;
+  color: var(--gray);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1;
+}
+
+/* Add task row */
+.add-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.add-task-row span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #555;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.add-task-row-icon {
+  width: 16px;
+  height: 16px;
+  border: 1px dashed #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+/* Add category */
+.add-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--gray-dim);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.add-cat-btn span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #444;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.add-cat-icon {
+  width: 26px;
+  height: 26px;
+  border: 1px dashed #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #444;
+}
+
+/* ── CONTACTS TAB ── */
+.contacts-view {
+  padding: 0 16px;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-dim);
+}
+
+.contact-initials {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--gray-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gray);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.contact-info { flex: 1; min-width: 0; }
+
+.contact-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+}
+
+.contact-role {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--gray);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.contact-number {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #AAA;
+  margin-top: 4px;
+  direction: ltr;
+  text-align: left;
+}
+
+.contact-btns { display: flex; gap: 8px; flex-shrink: 0; }
+
+.contact-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--gray-dim);
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--white);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.contact-btn:active { background: var(--gray-dim); }
+
+.add-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.add-contact-row span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #444;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  align-items: flex-end;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-sheet {
+  background: #111;
+  border-top: 1px solid var(--gray-dim);
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 16px 44px;
+}
+
+.modal-handle {
+  width: 32px;
+  height: 2px;
+  background: #333;
+  margin: 0 auto 20px;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  margin-bottom: 18px;
+}
+
+.modal-field {
+  margin-bottom: 12px;
+}
+
+.modal-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+
+.modal-input {
+  width: 100%;
+  background: #1A1A1A;
+  border: 1px solid var(--gray-dim);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 12px;
+  outline: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+}
+
+.modal-input:focus { border-color: var(--gray); }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-blk {
+  flex: 1;
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-ghost {
+  background: none;
+  color: var(--gray);
+  border: 1px solid var(--gray-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* confirm dialog */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.confirm-overlay.open { display: flex; }
+
+.confirm-box {
+  background: #111;
+  border: 1px solid var(--gray-dim);
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.confirm-text {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  color: var(--white);
+}
+
+.confirm-actions { display: flex; gap: 8px; }
+
+/* toast */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 400;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* share vcard button */
+.share-bar {
+  padding: 16px 0 0;
+  border-top: 1px solid var(--gray-dim);
+  margin-top: 8px;
+}
+
+.share-bar-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 1px solid var(--gray-dim);
+  color: var(--gray);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  cursor: pointer;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* backup view */
+.backup-view { padding: 0 16px; }
+
+.backup-section {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--gray-dim);
+}
+
+.backup-section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.backup-section-desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.backup-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--gray-dim);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+.backup-btn:active { background: var(--gray-dim); }
+
+.backup-btn.danger { color: var(--red); border-color: #3A1A1A; }
+
+.backup-icon { font-size: 16px; flex-shrink: 0; }
+
+.backup-last {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: #444;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+.backup-last span { color: var(--gray); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-wordmark">EXIT<em>.</em></div>
+    <div class="hdr-meta">
+      <div class="hdr-counter" id="hdrCounter">0/0</div>
+      <div class="hdr-counter-label">completed</div>
+    </div>
+  </div>
+  <div class="progress-strip">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('tasks', this)">Protocol</button>
+  <button class="tab" onclick="switchTab('contacts', this)">Contacts</button>
+  <button class="tab" onclick="switchTab('backup', this)">Backup</button>
+</div>
+
+<!-- TASKS VIEW -->
+<div class="view active" id="view-tasks">
+  <div id="catList"></div>
+  <button class="add-cat-btn" onclick="openAddCatModal()">
+    <div class="add-cat-icon">+</div>
+    <span>New category</span>
+  </button>
+</div>
+
+<!-- CONTACTS VIEW -->
+<div class="view" id="view-contacts">
+  <div class="contacts-view">
+    <div id="contactList"></div>
+    <div class="add-contact-row" onclick="openContactModal()">
+      <div class="add-cat-icon">+</div>
+      <span>Add contact</span>
+    </div>
+    <div class="share-bar">
+      <button class="share-bar-btn" onclick="exportContacts()">↑ Export contacts as vCard</button>
+    </div>
+  </div>
+</div>
+
+<!-- BACKUP VIEW -->
+<div class="view" id="view-backup">
+  <div class="backup-view">
+
+    <div class="backup-section">
+      <div class="backup-section-title">Save Backup</div>
+      <div class="backup-section-desc">Downloads a .json file with all your tasks and contacts.<br>Save it anywhere on your iPhone (Downloads, On My iPhone, etc).</div>
+      <button class="backup-btn" onclick="exportBackup()">
+        <span class="backup-icon">↓</span> Download backup file
+      </button>
+      <div class="backup-last" id="lastBackupLabel">Last backup: <span>never</span></div>
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-section-title">Restore</div>
+      <div class="backup-section-desc">Select a previously saved .json backup file.<br>This will overwrite all current data.</div>
+      <button class="backup-btn" onclick="document.getElementById('restoreInput').click()">
+        <span class="backup-icon">↑</span> Choose backup file
+      </button>
+      <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="importBackup(this)" />
+    </div>
+
+    <div class="backup-section">
+      <div class="backup-section-title">Export Contacts</div>
+      <div class="backup-section-desc">Downloads contacts as .vcf — importable into any phone's address book.</div>
+      <button class="backup-btn" onclick="exportContacts()">
+        <span class="backup-icon">↓</span> Download .vcf contacts
+      </button>
+    </div>
+
+    <div class="backup-section" style="border-bottom:none">
+      <div class="backup-section-title" style="color:var(--red)">Reset</div>
+      <div class="backup-section-desc">Delete all data and restore default tasks. Cannot be undone.</div>
+      <button class="backup-btn danger" onclick="resetAll()">
+        <span class="backup-icon">✕</span> Reset everything
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD CATEGORY MODAL -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Category</div>
+    <div class="modal-field">
+      <div class="modal-label">Category name</div>
+      <input class="modal-input" id="newCatName" placeholder="e.g. Housing" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('addCatModal')">Cancel</button>
+      <button class="btn-blk" onclick="saveNewCat()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Contact</div>
+    <div class="modal-field">
+      <div class="modal-label">Name</div>
+      <input class="modal-input" id="cName" placeholder="Full name" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Role</div>
+      <input class="modal-input" id="cRole" placeholder="e.g. Lawyer, Agent, Embassy" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Phone</div>
+      <input class="modal-input" id="cPhone" type="tel" placeholder="+98 …" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Note (optional)</div>
+      <input class="modal-input" id="cNote" placeholder="Any detail" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('contactModal')">Cancel</button>
+      <button class="btn-blk" onclick="saveContact()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-actions">
+      <button class="btn-ghost" onclick="confirmResolve(false)">Cancel</button>
+      <button class="btn-blk" onclick="confirmResolve(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const DEFAULT_CATS = [
+  {
+    id: 'passport', title: 'Passport & Exit Ban',
+    tasks: [
+      { id:0, text:'Consult a lawyer specializing in travel bans (ممنوع‌الخروج)', note:'Focus: bounced check / financial debt lift', done:false },
+      { id:1, text:'Get official confirmation of ban reason & creditor details', note:'Court enforcement office — اجرای احکام', done:false },
+      { id:2, text:'Negotiate with creditor directly — offer partial settlement', note:'Written agreement may be enough to lift the ban temporarily', done:false },
+      { id:3, text:'File petition to lift exit ban through court', note:'Requires lawyer · timeline 1–4 weeks', done:false },
+      { id:4, text:'Verify passport validity date', note:'Must be valid 6+ months beyond Turkey entry date', done:false },
+      { id:5, text:'Renew passport if expired (دفتر پاسپورت)', note:'Bring national ID, birth certificate, 2 photos', done:false },
+      { id:6, text:'Confirm exit ban is lifted at border control database', note:'Call +98-21-15 or verify through lawyer', done:false },
+      { id:7, text:'Make physical + digital copies of passport', note:'Email to yourself and store in cloud', done:false },
+    ]
+  },
+  {
+    id: 'financial', title: 'Money & Finances',
+    tasks: [
+      { id:0, text:'Research legal money transfer channels Iran → Turkey', note:'Hawala, صرافی exchange offices, USDT crypto', done:false },
+      { id:1, text:'Test small transfer before moving large amounts', note:'Confirm receipt at destination first', done:false },
+      { id:2, text:'Calculate minimum liquidity for 3 months in Turkey', note:'Istanbul: ~$800–1200/mo all-in', done:false },
+      { id:3, text:'Carry physical cash (USD/EUR/TRY) at border crossing', note:'Iran customs: declare amounts over $10,000', done:false },
+      { id:4, text:'Settle or document all financial obligations in Iran', note:'Checks, loans, liabilities — get written records', done:false },
+      { id:5, text:'Open Turkish bank account (on arrival)', note:'Ziraat, VakıfBank, Halkbank — bring passport + address', done:false },
+      { id:6, text:'Decide what to do with Iranian bank accounts', note:'Keep active or have trusted person manage', done:false },
+      { id:7, text:'Set up USDT wallet for ongoing cross-border transfers', note:'Binance P2P or local Istanbul exchange', done:false },
+    ]
+  },
+  {
+    id: 'legal', title: 'Legal & Documents',
+    tasks: [
+      { id:0, text:'Obtain criminal record (گواهی عدم سوء‌پیشینه)', note:'Required for Turkish residence permit', done:false },
+      { id:1, text:'Apostille stamp on criminal record', note:'Ministry of Justice — 1–7 days', done:false },
+      { id:2, text:'Gather birth certificate (شناسنامه) copies', note:'Translation to Turkish/English needed later', done:false },
+      { id:3, text:'National ID (کارت ملی) — make copies, keep safe', note:null, done:false },
+      { id:4, text:'Research Turkish residence permit (İkamet) options', note:'Apply within 30 days of entry at e-ikamet.goc.gov.tr', done:false },
+      { id:5, text:'Prepare power of attorney (وکالتنامه) for trusted person in Iran', note:'For property, legal matters, banking while abroad', done:false },
+      { id:6, text:'Consult on tax residency implications of leaving', note:null, done:false },
+    ]
+  },
+  {
+    id: 'logistics', title: 'Logistics & Moving',
+    tasks: [
+      { id:0, text:'Decide: fly or bus/drive to Turkey', note:'Flight: Tehran → Istanbul ~$100–250 · Bus via Van ~24hr', done:false },
+      { id:1, text:'Book one-way ticket (keep flexible dates)', note:'Turkish Airlines, Pegasus, Mahan Air', done:false },
+      { id:2, text:'List all items: bring vs. ship vs. store vs. sell', note:'Documents, electronics, clothes, valuables', done:false },
+      { id:3, text:'Pack all original documents in a dedicated folder', note:'Passport, ID, birth cert, criminal record, diplomas', done:false },
+      { id:4, text:'Arrange temporary accommodation in Istanbul', note:'Airbnb or hostel in Şişli, Beyoğlu, or Kadıköy', done:false },
+      { id:5, text:'Arrange storage or handover for remaining belongings', note:'Trusted person or storage unit', done:false },
+    ]
+  },
+  {
+    id: 'digital', title: 'Digital & Security',
+    tasks: [
+      { id:0, text:'Back up all data to cloud before departure', note:'Google Drive, iCloud — verify backup is complete', done:false },
+      { id:1, text:'Install and test VPN now (harder after leaving Iran)', note:'Mullvad, ProtonVPN', done:false },
+      { id:2, text:'Update 2FA backup codes for all critical accounts', note:'Google, email, exchanges, banking', done:false },
+      { id:3, text:'Export phone contacts as vCard backup', note:'iPhone: Settings → Contacts → Export', done:false },
+      { id:4, text:'Move crypto to non-custodial wallet before departure', note:'Hardware wallet or self-custody', done:false },
+      { id:5, text:'Store encrypted copies of all documents', note:'Password-protected ZIP or Cryptomator', done:false },
+    ]
+  },
+  {
+    id: 'turkey', title: 'Turkey — First 30 Days',
+    tasks: [
+      { id:0, text:'Get Turkish SIM card registered in your name', note:'Turkcell, Vodafone TR, Türk Telekom — buy on arrival', done:false },
+      { id:1, text:'Apply for İkamet within 30 days of entry', note:'e-ikamet.goc.gov.tr — book appointment first', done:false },
+      { id:2, text:'Obtain Turkish Tax ID (Vergi Numarası)', note:'Any tax office, bring passport — 10 minutes', done:false },
+      { id:3, text:'Register address with local muhtar', note:'Required for İkamet — free and quick', done:false },
+      { id:4, text:'Find monthly rental accommodation', note:'FB groups: "İstanbul Kiralık Ev" or local agents', done:false },
+      { id:5, text:'Research 3rd country visa strategy from Istanbul', note:'Portugal, Spain, Estonia, Lithuania consulates available', done:false },
+    ]
+  }
+];
+
+// ── STATE ──
+let cats = [];
+let contacts = [];
+let confirmCallback = null;
+
+function load() {
+  const sc = localStorage.getItem('ep_cats');
+  const sk = localStorage.getItem('ep_contacts');
+  cats = sc ? JSON.parse(sc) : JSON.parse(JSON.stringify(DEFAULT_CATS));
+  contacts = sk ? JSON.parse(sk) : [];
+}
+
+function save() {
+  localStorage.setItem('ep_cats', JSON.stringify(cats));
+  localStorage.setItem('ep_contacts', JSON.stringify(contacts));
+}
+
+// ── TABS ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('view-' + name).classList.add('active');
+}
+
+// ── RENDER ──
+function render() {
+  renderTasks();
+  renderContacts();
+  updateProgress();
+}
+
+function updateProgress() {
+  let total = 0, done = 0;
+  cats.forEach(c => { total += c.tasks.length; done += c.tasks.filter(t=>t.done).length; });
+  document.getElementById('hdrCounter').textContent = done + '/' + total;
+  document.getElementById('progressFill').style.width = (total ? Math.round(done/total*100) : 0) + '%';
+}
+
+function renderTasks() {
+  const list = document.getElementById('catList');
+  list.innerHTML = '';
+  cats.forEach((cat, ci) => {
+    const done = cat.tasks.filter(t=>t.done).length;
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.innerHTML = `
+      <div class="cat-header" onclick="toggleCat(${ci}, event)">
+        <div class="cat-seq">${String(ci+1).padStart(2,'0')}</div>
+        <div class="cat-title-wrap">
+          <div class="cat-title" id="catTitle${ci}">${esc(cat.title)}</div>
+          <input class="cat-title-input" id="catTitleInput${ci}" value="${esc(cat.title)}"
+            onclick="event.stopPropagation()"
+            onblur="saveCatTitle(${ci})"
+            onkeydown="if(event.key==='Enter'){saveCatTitle(${ci});this.blur()}" />
+        </div>
+        <div class="cat-right">
+          <div class="cat-count">${done}/${cat.tasks.length}</div>
+          <button class="cat-edit-btn" onclick="event.stopPropagation();startEditCatTitle(${ci})" title="Edit">✎</button>
+          <button class="cat-edit-btn" onclick="event.stopPropagation();deleteCat(${ci})" title="Delete">✕</button>
+          <div class="cat-arrow">▶</div>
+        </div>
+      </div>
+      <div class="cat-body" id="catBody${ci}">
+        ${cat.tasks.map((t,ti) => taskHTML(ci,ti,t)).join('')}
+        <div class="add-task-row" onclick="addTask(${ci})">
+          <div class="add-task-row-icon">+</div>
+          <span>Add task</span>
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function taskHTML(ci, ti, t) {
+  return `
+    <div class="task-item ${t.done?'done':''}" id="task-${ci}-${ti}">
+      <div class="task-check" onclick="toggleTask(${ci},${ti})"><span class="task-check-mark">✓</span></div>
+      <div class="task-content">
+        <div class="task-text" id="taskText-${ci}-${ti}" ondblclick="startEditTask(${ci},${ti})">${esc(t.text)}</div>
+        <input class="task-text-input" id="taskTextInput-${ci}-${ti}"
+          value="${esc(t.text)}"
+          onblur="saveTaskText(${ci},${ti})"
+          onkeydown="if(event.key==='Enter'){saveTaskText(${ci},${ti});this.blur()}" />
+        <div class="task-note" id="taskNote-${ci}-${ti}" ondblclick="startEditTaskNote(${ci},${ti})">${t.note ? esc(t.note) : '<span style="color:#333">+ note</span>'}</div>
+        <input class="task-note-input" id="taskNoteInput-${ci}-${ti}"
+          value="${t.note ? esc(t.note) : ''}"
+          placeholder="add a note…"
+          onblur="saveTaskNote(${ci},${ti})"
+          onkeydown="if(event.key==='Enter'){saveTaskNote(${ci},${ti});this.blur()}" />
+      </div>
+      <div class="task-actions">
+        <button class="task-act-btn" onclick="deleteTask(${ci},${ti})" title="Delete">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INTERACTIONS ──
+function toggleCat(ci, e) {
+  const card = document.querySelectorAll('.cat-card')[ci];
+  card.classList.toggle('open');
+}
+
+function startEditCatTitle(ci) {
+  document.getElementById('catTitle'+ci).classList.add('is-editing');
+  const inp = document.getElementById('catTitleInput'+ci);
+  inp.classList.add('is-editing');
+  inp.focus();
+  inp.select();
+}
+
+function saveCatTitle(ci) {
+  const inp = document.getElementById('catTitleInput'+ci);
+  cats[ci].title = inp.value.trim() || cats[ci].title;
+  save();
+  document.getElementById('catTitle'+ci).textContent = cats[ci].title;
+  document.getElementById('catTitle'+ci).classList.remove('is-editing');
+  inp.classList.remove('is-editing');
+}
+
+function deleteCat(ci) {
+  askConfirm(`Delete "${cats[ci].title}" and all its tasks?`, () => {
+    cats.splice(ci, 1);
+    save();
+    renderTasks();
+    updateProgress();
+  });
+}
+
+function toggleTask(ci, ti) {
+  cats[ci].tasks[ti].done = !cats[ci].tasks[ti].done;
+  save();
+  const el = document.getElementById('task-'+ci+'-'+ti);
+  el.classList.toggle('done', cats[ci].tasks[ti].done);
+  updateProgress();
+  // update cat count
+  const done = cats[ci].tasks.filter(t=>t.done).length;
+  document.querySelectorAll('.cat-count')[ci].textContent = done+'/'+cats[ci].tasks.length;
+}
+
+function startEditTask(ci, ti) {
+  document.getElementById('taskText-'+ci+'-'+ti).style.display = 'none';
+  const inp = document.getElementById('taskTextInput-'+ci+'-'+ti);
+  inp.style.display = 'block';
+  inp.focus(); inp.select();
+}
+
+function saveTaskText(ci, ti) {
+  const inp = document.getElementById('taskTextInput-'+ci+'-'+ti);
+  cats[ci].tasks[ti].text = inp.value.trim() || cats[ci].tasks[ti].text;
+  save();
+  document.getElementById('taskText-'+ci+'-'+ti).textContent = cats[ci].tasks[ti].text;
+  document.getElementById('taskText-'+ci+'-'+ti).style.display = '';
+  inp.style.display = 'none';
+}
+
+function startEditTaskNote(ci, ti) {
+  document.getElementById('taskNote-'+ci+'-'+ti).style.display = 'none';
+  const inp = document.getElementById('taskNoteInput-'+ci+'-'+ti);
+  inp.style.display = 'block';
+  inp.focus();
+}
+
+function saveTaskNote(ci, ti) {
+  const inp = document.getElementById('taskNoteInput-'+ci+'-'+ti);
+  cats[ci].tasks[ti].note = inp.value.trim() || null;
+  save();
+  const noteEl = document.getElementById('taskNote-'+ci+'-'+ti);
+  noteEl.innerHTML = cats[ci].tasks[ti].note ? esc(cats[ci].tasks[ti].note) : '<span style="color:#333">+ note</span>';
+  noteEl.style.display = '';
+  inp.style.display = 'none';
+}
+
+function deleteTask(ci, ti) {
+  askConfirm('Delete this task?', () => {
+    cats[ci].tasks.splice(ti, 1);
+    save();
+    renderTasks();
+    updateProgress();
+    // re-open card
+    const cards = document.querySelectorAll('.cat-card');
+    if (cards[ci]) cards[ci].classList.add('open');
+  });
+}
+
+function addTask(ci) {
+  const text = prompt('Task text:');
+  if (!text || !text.trim()) return;
+  const note = prompt('Note (optional):') || null;
+  const maxId = cats[ci].tasks.reduce((m,t) => Math.max(m,t.id), -1);
+  cats[ci].tasks.push({ id: maxId+1, text: text.trim(), note: note ? note.trim() : null, done: false });
+  save();
+  renderTasks();
+  updateProgress();
+  const cards = document.querySelectorAll('.cat-card');
+  if (cards[ci]) cards[ci].classList.add('open');
+}
+
+// ── ADD CATEGORY ──
+function openAddCatModal() {
+  document.getElementById('newCatName').value = '';
+  openModal('addCatModal');
+  setTimeout(() => document.getElementById('newCatName').focus(), 100);
+}
+
+function saveNewCat() {
+  const name = document.getElementById('newCatName').value.trim();
+  if (!name) return;
+  cats.push({ id: 'custom_' + Date.now(), title: name, tasks: [] });
+  save();
+  closeModal('addCatModal');
+  renderTasks();
+  updateProgress();
+}
+
+// ── CONTACTS ──
+function renderContacts() {
+  const list = document.getElementById('contactList');
+  if (contacts.length === 0) {
+    list.innerHTML = '<div style="padding:24px 0;font-family:var(--font-mono);font-size:10px;color:#444;letter-spacing:0.1em;text-transform:uppercase;">No contacts yet</div>';
+    return;
+  }
+  list.innerHTML = contacts.map((c, i) => {
+    const initials = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `
+    <div class="contact-card">
+      <div class="contact-initials">${initials}</div>
+      <div class="contact-info">
+        <div class="contact-name">${esc(c.name)}</div>
+        <div class="contact-role">${esc(c.role||'—')}</div>
+        <div class="contact-number">${esc(c.phone||'—')}</div>
+        ${c.note ? `<div class="contact-role" style="margin-top:3px;color:#666">${esc(c.note)}</div>` : ''}
+      </div>
+      <div class="contact-btns">
+        ${c.phone ? `<a href="tel:${esc(c.phone)}" class="contact-btn">📞</a>` : ''}
+        <button class="contact-btn" onclick="deleteContact(${i})">✕</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function openContactModal() {
+  ['cName','cRole','cPhone','cNote'].forEach(id => document.getElementById(id).value = '');
+  openModal('contactModal');
+  setTimeout(() => document.getElementById('cName').focus(), 100);
+}
+
+function saveContact() {
+  const name = document.getElementById('cName').value.trim();
+  if (!name) return;
+  contacts.push({
+    name,
+    role: document.getElementById('cRole').value.trim(),
+    phone: document.getElementById('cPhone').value.trim(),
+    note: document.getElementById('cNote').value.trim()
+  });
+  save();
+  closeModal('contactModal');
+  renderContacts();
+  showToast('Contact saved');
+}
+
+function deleteContact(i) {
+  askConfirm(`Delete "${contacts[i].name}"?`, () => {
+    contacts.splice(i, 1);
+    save();
+    renderContacts();
+  });
+}
+
+function exportContacts() {
+  if (contacts.length === 0) { showToast('No contacts to export'); return; }
+  const vcf = contacts.map(c => [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${c.name}`,
+    c.role ? `TITLE:${c.role}` : '',
+    c.phone ? `TEL:${c.phone}` : '',
+    c.note ? `NOTE:${c.note}` : '',
+    'END:VCARD'
+  ].filter(Boolean).join('\n')).join('\n\n');
+
+  const blob = new Blob([vcf], { type: 'text/vcard' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'exit-protocol-contacts.vcf';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Contacts exported');
+}
+
+function exportBackup() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    cats: cats,
+    contacts: contacts
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.download = `exit-protocol-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  const now = new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  localStorage.setItem('ep_lastBackup', now);
+  updateLastBackupLabel();
+  showToast('Backup saved');
+}
+
+function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.cats || !data.contacts) { showToast('Invalid backup file'); return; }
+      askConfirm('Restore this backup? All current data will be replaced.', () => {
+        cats = data.cats;
+        contacts = data.contacts;
+        save();
+        render();
+        showToast('Restored successfully');
+      });
+    } catch(err) {
+      showToast('Could not read file');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function resetAll() {
+  askConfirm('Reset everything? All tasks and contacts will be deleted and defaults restored.', () => {
+    cats = JSON.parse(JSON.stringify(DEFAULT_CATS));
+    contacts = [];
+    save();
+    render();
+    showToast('Reset complete');
+  });
+}
+
+function updateLastBackupLabel() {
+  const el = document.getElementById('lastBackupLabel');
+  if (!el) return;
+  const last = localStorage.getItem('ep_lastBackup');
+  el.innerHTML = `Last backup: <span>${last || 'never'}</span>`;
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── CONFIRM ──
+function askConfirm(text, cb) {
+  document.getElementById('confirmText').textContent = text;
+  confirmCallback = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function confirmResolve(yes) {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if (yes && confirmCallback) confirmCallback();
+  confirmCallback = null;
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── INIT ──
+load();
+render();
+updateLastBackupLabel();
+</script>
+</body>
+</html>
